@@ -1,0 +1,54 @@
+.appContainer {
+  padding: 2rem;
+  font-family: Arial, sans-serif;
+}
+
+.appHeader {
+  font-size: 2rem;
+  margin-bottom: 1.5rem;
+}
+
+/* Job form */
+.jobForm {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.jobFormSelect,
+.jobFormInput,
+.jobFormButton {
+  margin-right: 0.5rem;
+  padding: 0.4rem;
+}
+
+/* Job list */
+.jobCard {
+  border: 1px solid #ddd;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+}
+
+/* Job status */
+.jobStatus {
+  margin-top: 0.5rem;
+}
+
+.jobResult {
+  background: #eee;
+  padding: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.jobError {
+  color: red;
+  margin-top: 0.5rem;
+}
+
+.jobResultImage {
+  margin-top: 0.5rem;
+  max-width: 200px;
+  border-radius: 4px;
+}

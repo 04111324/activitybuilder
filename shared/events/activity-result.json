@@ -1,0 +1,57 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ActivityResultProduced",
+  "type": "object",
+  "additionalProperties": false,
+
+  "properties": {
+    "eventType": {
+      "type": "string",
+      "enum": ["ACTIVITY_RESULT_PRODUCED"]
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "jobId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "userId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "timestamp": {
+      "type": "string"
+    },
+    "payload": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "activityType": {
+          "type": "string",
+          "enum": ["text", "image"]
+        },
+        "content": {
+          "type": "string",
+          "description": "Text content or image URL"
+        },
+        "metadata": {
+          "type": "object",
+          "additionalProperties": true,
+          "description": "Model info, generation params, etc."
+        }
+      },
+      "required": ["activityType", "content"]
+    }
+  },
+
+  "required": [
+    "eventType",
+    "version",
+    "jobId",
+    "userId",
+    "timestamp",
+    "payload"
+  ]
+}

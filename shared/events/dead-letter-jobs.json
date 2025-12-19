@@ -1,0 +1,31 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "DeadLetterJob",
+  "type": "object",
+  "additionalProperties": false,
+
+  "properties": {
+    "eventType": {
+      "type": "string",
+      "enum": ["DEAD_LETTER_JOB"]
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "originalEvent": {
+      "type": "object",
+      "description": "The original event that failed",
+      "additionalProperties": true
+    },
+    "error": {
+      "type": "string",
+      "description": "Error message describing why the job failed"
+    },
+    "failedAt": {
+      "type": "string",
+      "description": "Timestamp when the job failed"
+    }
+  },
+  "required": ["eventType", "version", "originalEvent", "error", "failedAt"]
+}

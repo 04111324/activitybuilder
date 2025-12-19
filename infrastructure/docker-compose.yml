@@ -1,0 +1,120 @@
+services:
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.4.0
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+    healthcheck:
+      test: ["CMD", "bash", "-c", "echo 'ruok' | nc localhost 2181"]
+      interval: 5s
+      retries: 10
+
+  kafka:
+    image: confluentinc/cp-kafka:7.4.0
+    container_name: kafka
+    environment:
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+    ports:
+      - "9092:9092"
+    volumes:
+      - kafka_data:/var/lib/kafka/data
+    depends_on:
+      zookeeper:
+        condition: service_healthy
+    healthcheck: # ✅ Kafka healthcheck
+      test:
+        ["CMD", "kafka-topics", "--bootstrap-server", "kafka:9092", "--list"]
+      interval: 5s
+      retries: 10
+
+  api-gateway:
+    build: ../api-gateway
+    ports:
+      - "3001:3001"
+    depends_on:
+      kafka:
+        condition: service_healthy
+    environment:
+      - KAFKA_BROKER=kafka:9092
+      - MONGO_URI=mongodb://mongo:27017/jobsDB
+      - NODE_ENV=production # ✅ Optional: Set NODE_ENV
+
+  text-service:
+    build: ../text-service
+    ports:
+      - "3002:3002"
+    depends_on:
+      kafka:
+        condition: service_healthy
+    volumes:
+      - ../shared:/shared
+    environment:
+      - KAFKA_BROKER=kafka:9092
+      - NODE_ENV=production # ✅ Ensures the service knows it's in production
+      - MONGO_URI=mongodb://mongo:27017/jobsDB
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+    healthcheck: # ✅ Add healthcheck for Docker readiness
+      test: ["CMD", "curl", "-f", "http://localhost:3002/health || exit 1"]
+      interval: 10s
+      retries: 5
+
+  image-service:
+    build: ../image-service
+    ports:
+      - "3003:3003"
+    depends_on:
+      kafka:
+        condition: service_healthy
+    volumes:
+      - ../shared:/shared
+    environment:
+      - KAFKA_BROKER=kafka:9092
+      - NODE_ENV=production # ✅ Ensures the service knows it's in production
+      - MONGO_URI=mongodb://mongo:27017/jobsDB
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+    healthcheck: # ✅ Add healthcheck for Docker readiness
+      test: ["CMD", "curl", "-f", "http://localhost:3003/health || exit 1"]
+      interval: 10s
+      retries: 5
+
+  auth-service:
+    build: ../auth-service
+    ports:
+      - "3004:3004"
+    depends_on:
+      - mongodb
+    environment:
+      - MONGO_URI=mongodb://mongo:27017/kidsActivityDB
+
+  user-service:
+    build: ../user-service
+    ports:
+      - "3005:3005"
+    depends_on:
+      - mongodb
+    environment:
+      - MONGO_URI=mongodb://mongo:27017/kidsActivityDB
+
+  mongodb:
+    image: mongo:6
+    container_name: mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  kafka_data:
+  mongo_data:
